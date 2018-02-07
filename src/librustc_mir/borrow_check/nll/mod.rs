@@ -29,7 +29,7 @@ use self::mir_util::PassWhere;
 
 mod constraint_generation;
 pub mod explain_borrow;
-pub(crate) mod region_infer;
+pub mod region_infer;
 mod renumber;
 mod subtype_constraint_generation;
 pub(crate) mod type_check;

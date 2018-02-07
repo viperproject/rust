@@ -20,7 +20,7 @@ use std::fmt;
 use std::hash::Hash;
 use std::ops::Index;
 
-crate struct BorrowSet<'tcx> {
+pub struct BorrowSet<'tcx> {
     /// The fundamental map relating bitvector indexes to the borrows
     /// in the MIR.
     crate borrows: IndexVec<BorrowIndex, BorrowData<'tcx>>,
@@ -54,21 +54,21 @@ impl<'tcx> Index<BorrowIndex> for BorrowSet<'tcx> {
 }
 
 #[derive(Debug)]
-crate struct BorrowData<'tcx> {
+pub struct BorrowData<'tcx> {
     /// Location where the borrow reservation starts.
     /// In many cases, this will be equal to the activation location but not always.
-    crate reserve_location: Location,
+    pub reserve_location: Location,
     /// Location where the borrow is activated. None if this is not a
     /// 2-phase borrow.
-    crate activation_location: Option<Location>,
+    pub activation_location: Option<Location>,
     /// What kind of borrow this is
-    crate kind: mir::BorrowKind,
+    pub kind: mir::BorrowKind,
     /// The region for which this borrow is live
-    crate region: Region<'tcx>,
+    pub region: Region<'tcx>,
     /// Place from which we are borrowing
-    crate borrowed_place: mir::Place<'tcx>,
+    pub borrowed_place: mir::Place<'tcx>,
     /// Place to which the borrow was stored
-    crate assigned_place: mir::Place<'tcx>,
+    pub assigned_place: mir::Place<'tcx>,
 }
 
 impl<'tcx> fmt::Display for BorrowData<'tcx> {

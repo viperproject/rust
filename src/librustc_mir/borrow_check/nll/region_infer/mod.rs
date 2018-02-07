@@ -44,7 +44,7 @@ pub struct RegionInferenceContext<'tcx> {
     /// variables are identified by their index (`RegionVid`). The
     /// definition contains information about where the region came
     /// from as well as its final inferred value.
-    definitions: IndexVec<RegionVid, RegionDefinition<'tcx>>,
+    pub definitions: IndexVec<RegionVid, RegionDefinition<'tcx>>,
 
     /// Maps from points/universal-regions to a `RegionElementIndex`.
     elements: Rc<RegionValueElements>,
@@ -67,7 +67,7 @@ pub struct RegionInferenceContext<'tcx> {
     dependency_map: Option<IndexVec<RegionVid, Option<ConstraintIndex>>>,
 
     /// The constraints we have accumulated and used during solving.
-    constraints: IndexVec<ConstraintIndex, Constraint>,
+    pub constraints: IndexVec<ConstraintIndex, Constraint>,
 
     /// Type constraints that we check after solving.
     type_tests: Vec<TypeTest<'tcx>>,
@@ -79,7 +79,7 @@ pub struct RegionInferenceContext<'tcx> {
 
 struct TrackCauses(bool);
 
-struct RegionDefinition<'tcx> {
+pub struct RegionDefinition<'tcx> {
     /// Why we created this variable. Mostly these will be
     /// `RegionVariableOrigin::NLL`, but some variables get created
     /// elsewhere in the code with other causes (e.g., instantiation
@@ -94,14 +94,14 @@ struct RegionDefinition<'tcx> {
 
     /// If this is 'static or an early-bound region, then this is
     /// `Some(X)` where `X` is the name of the region.
-    external_name: Option<ty::Region<'tcx>>,
+    pub external_name: Option<ty::Region<'tcx>>,
 }
 
 /// NB: The variants in `Cause` are intentionally ordered. Lower
 /// values are preferred when it comes to error messages. Do not
 /// reorder willy nilly.
 #[derive(Clone, Debug, PartialOrd, Ord, PartialEq, Eq)]
-pub(crate) enum Cause {
+pub enum Cause {
     /// point inserted because Local was live at the given Location
     LiveVar(Local, Location),
 
@@ -129,7 +129,7 @@ pub(crate) enum Cause {
     },
 }
 
-pub(crate) struct RegionCausalInfo {
+pub struct RegionCausalInfo {
     inferred_values: RegionValues,
 }
 
@@ -140,13 +140,13 @@ pub struct Constraint {
     // debugging logs, we sort them, and we'd like the "super region"
     // to be first, etc. (In particular, span should remain last.)
     /// The region SUP must outlive SUB...
-    sup: RegionVid,
+    pub sup: RegionVid,
 
     /// Region that must be outlived.
-    sub: RegionVid,
+    pub sub: RegionVid,
 
     /// At this location.
-    point: Location,
+    pub point: Location,
 
     /// Later on, we thread the constraints onto a linked list
     /// grouped by their `sub` field. So if you had:
@@ -159,7 +159,7 @@ pub struct Constraint {
     next: Option<ConstraintIndex>,
 
     /// Where did this constraint arise?
-    span: Span,
+    pub span: Span,
 }
 
 newtype_index!(ConstraintIndex { DEBUG_FORMAT = "ConstraintIndex({})" });
@@ -174,7 +174,7 @@ newtype_index!(ConstraintIndex { DEBUG_FORMAT = "ConstraintIndex({})" });
 /// `InferCtxt::process_registered_region_obligations` method will
 /// attempt to convert a type test like `T: 'x` into an ordinary
 /// outlives constraint when possible (for example, `&'a T: 'b` will
-/// be converted into `'a: 'b` and registered as a `Constraint`).
+/// be converted into `'a: 'b` and registered as a `pub Constraint`).
 ///
 /// In some cases, however, there are outlives relationships that are
 /// not converted into a region constraint, but rather into one of
@@ -251,6 +251,16 @@ pub enum RegionTest {
 }
 
 impl<'tcx> RegionInferenceContext<'tcx> {
+    /// Returns the the final inferred values of the inference variables.
+    ///
+    /// Panics if called before `solve()` executes.
+    pub fn inferred_values(&self) -> &RegionValues
+    {
+        self.inferred_values
+            .as_ref()
+            .expect("region values not yet inferred")
+    }
+
     /// Creates a new region inference context with a total of
     /// `num_region_variables` valid inference variables; the first N
     /// of those will be constant regions representing the free
@@ -1331,7 +1341,7 @@ impl CauseExt for Rc<Cause> {
 }
 
 impl Cause {
-    pub(crate) fn root_cause(&self) -> &Cause {
+    pub fn root_cause(&self) -> &Cause {
         match self {
             Cause::LiveVar(..)
             | Cause::DropVar(..)

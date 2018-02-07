@@ -68,11 +68,11 @@ macro_rules! do_catch {
 
 mod diagnostics;
 
-mod borrow_check;
-mod build;
-mod dataflow;
-mod hair;
-mod shim;
+pub mod borrow_check;
+pub mod build;
+pub mod dataflow;
+pub mod hair;
+pub mod shim;
 pub mod transform;
 pub mod util;
 pub mod interpret;

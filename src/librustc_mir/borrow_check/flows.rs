@@ -25,8 +25,8 @@ use dataflow::move_paths::indexes::BorrowIndex;
 use std::fmt;
 
 // (forced to be `pub` due to its use as an associated type below.)
-crate struct Flows<'b, 'gcx: 'tcx, 'tcx: 'b> {
-    borrows: FlowAtLocation<Borrows<'b, 'gcx, 'tcx>>,
+pub struct Flows<'b, 'gcx: 'tcx, 'tcx: 'b> {
+    pub borrows: FlowAtLocation<Borrows<'b, 'gcx, 'tcx>>,
     pub inits: FlowAtLocation<MaybeInitializedPlaces<'b, 'gcx, 'tcx>>,
     pub uninits: FlowAtLocation<MaybeUninitializedPlaces<'b, 'gcx, 'tcx>>,
     pub move_outs: FlowAtLocation<MovingOutStatements<'b, 'gcx, 'tcx>>,
@@ -50,11 +50,11 @@ impl<'b, 'gcx, 'tcx> Flows<'b, 'gcx, 'tcx> {
         }
     }
 
-    crate fn borrows_in_scope(&self) -> impl Iterator<Item = BorrowIndex> + '_ {
+    pub fn borrows_in_scope(&self) -> impl Iterator<Item = BorrowIndex> + '_ {
         self.borrows.iter_incoming()
     }
 
-    crate fn with_outgoing_borrows(&self, op: impl FnOnce(Iter<BorrowIndex>)) {
+    pub fn with_outgoing_borrows(&self, op: impl FnOnce(Iter<BorrowIndex>)) {
         self.borrows.with_iter_outgoing(op)
     }
 }

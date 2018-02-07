@@ -44,7 +44,7 @@ pub mod move_paths;
 
 pub(crate) use self::move_paths::indexes;
 
-pub(crate) struct DataflowBuilder<'a, 'tcx: 'a, BD> where BD: BitDenotation
+pub struct DataflowBuilder<'a, 'tcx: 'a, BD> where BD: BitDenotation
 {
     node_id: ast::NodeId,
     flow_state: DataflowAnalysis<'a, 'tcx, BD>,
@@ -57,7 +57,7 @@ pub(crate) struct DataflowBuilder<'a, 'tcx: 'a, BD> where BD: BitDenotation
 /// string (as well as that of rendering up-front); in exchange, you
 /// don't have to hand over ownership of your value or deal with
 /// borrowing it.
-pub(crate) struct DebugFormatted(String);
+pub struct DebugFormatted(String);
 
 impl DebugFormatted {
     pub fn new(input: &dyn fmt::Debug) -> DebugFormatted {
@@ -71,7 +71,7 @@ impl fmt::Debug for DebugFormatted {
     }
 }
 
-pub(crate) trait Dataflow<BD: BitDenotation> {
+pub trait Dataflow<BD: BitDenotation> {
     /// Sets up and runs the dataflow problem, using `p` to render results if
     /// implementation so chooses.
     fn dataflow<P>(&mut self, p: P) where P: Fn(&BD, BD::Idx) -> DebugFormatted {
@@ -100,7 +100,7 @@ impl<'a, 'tcx: 'a, BD> Dataflow<BD> for DataflowBuilder<'a, 'tcx, BD> where BD: 
     fn propagate(&mut self) { self.flow_state.propagate(); }
 }
 
-pub(crate) fn has_rustc_mir_with(attrs: &[ast::Attribute], name: &str) -> Option<MetaItem> {
+pub fn has_rustc_mir_with(attrs: &[ast::Attribute], name: &str) -> Option<MetaItem> {
     for attr in attrs {
         if attr.check_name("rustc_mir") {
             let items = attr.meta_item_list();
@@ -120,7 +120,7 @@ pub struct MoveDataParamEnv<'gcx, 'tcx> {
     pub(crate) param_env: ty::ParamEnv<'gcx>,
 }
 
-pub(crate) fn do_dataflow<'a, 'gcx, 'tcx, BD, P>(tcx: TyCtxt<'a, 'gcx, 'tcx>,
+pub fn do_dataflow<'a, 'gcx, 'tcx, BD, P>(tcx: TyCtxt<'a, 'gcx, 'tcx>,
                                                  mir: &'a Mir<'tcx>,
                                                  node_id: ast::NodeId,
                                                  attributes: &[ast::Attribute],
@@ -137,7 +137,7 @@ pub(crate) fn do_dataflow<'a, 'gcx, 'tcx, BD, P>(tcx: TyCtxt<'a, 'gcx, 'tcx>,
 
 impl<'a, 'gcx: 'tcx, 'tcx: 'a, BD> DataflowAnalysis<'a, 'tcx, BD> where BD: BitDenotation
 {
-    pub(crate) fn run<P>(self,
+    pub fn run<P>(self,
                          tcx: TyCtxt<'a, 'gcx, 'tcx>,
                          node_id: ast::NodeId,
                          attributes: &[ast::Attribute],
@@ -290,7 +290,7 @@ impl<'a, 'tcx: 'a, BD> DataflowBuilder<'a, 'tcx, BD> where BD: BitDenotation
 
 /// Maps each block to a set of bits
 #[derive(Debug)]
-pub(crate) struct Bits<E:Idx> {
+pub struct Bits<E:Idx> {
     bits: IdxSetBuf<E>,
 }
 
@@ -311,7 +311,7 @@ impl<E:Idx> Bits<E> {
 /// underlying flow analysis results, because it needs to handle cases
 /// where we are combining the results of *multiple* flow analyses
 /// (e.g. borrows + inits + uninits).
-pub(crate) trait DataflowResultsConsumer<'a, 'tcx: 'a> {
+pub trait DataflowResultsConsumer<'a, 'tcx: 'a> {
     type FlowState: FlowsAtLocation;
 
     // Observation Hooks: override (at least one of) these to get analysis feedback.

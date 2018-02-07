@@ -75,7 +75,7 @@ impl<'a, 'gcx, 'tcx> Borrows<'a, 'gcx, 'tcx> {
         }
     }
 
-    crate fn borrows(&self) -> &IndexVec<BorrowIndex, BorrowData<'tcx>> { &self.borrow_set.borrows }
+    pub fn borrows(&self) -> &IndexVec<BorrowIndex, BorrowData<'tcx>> { &self.borrow_set.borrows }
 
     pub fn scope_tree(&self) -> &Lrc<region::ScopeTree> { &self.scope_tree }
 

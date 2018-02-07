@@ -84,6 +84,16 @@ where
         self.curr_state.iter().for_each(f)
     }
 
+    /// Iterate over each `kill` bit in the current effect (invoke
+    /// `reconstruct_statement_effect` or
+    /// `reconstruct_terminator_effect` first).
+    pub fn each_kill_bit<F>(&self, f: F)
+    where
+        F: FnMut(BD::Idx),
+    {
+        self.stmt_kill.iter().for_each(f)
+    }
+
     /// Iterate over each `gen` bit in the current effect (invoke
     /// `reconstruct_statement_effect` or
     /// `reconstruct_terminator_effect` first).

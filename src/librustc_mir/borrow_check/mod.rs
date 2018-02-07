@@ -51,13 +51,13 @@ use self::flows::Flows;
 use self::prefixes::PrefixSet;
 use self::MutateMode::{JustWrite, WriteAndRead};
 
-crate mod borrow_set;
-mod error_reporting;
-mod flows;
-crate mod place_ext;
-mod prefixes;
+pub mod borrow_set;
+pub mod error_reporting;
+pub mod flows;
+pub mod place_ext;
+pub mod prefixes;
 
-pub(crate) mod nll;
+pub mod nll;
 
 pub fn provide(providers: &mut Providers) {
     *providers = Providers {
@@ -79,17 +79,20 @@ fn mir_borrowck<'a, 'tcx>(
 
     let opt_closure_req = tcx.infer_ctxt().enter(|infcx| {
         let input_mir: &Mir = &input_mir.borrow();
-        do_mir_borrowck(&infcx, input_mir, def_id)
+        fn callback<'s>(_mbcx: &'s mut MirBorrowckCtxt, _state: &'s mut Flows) {}
+        //let callback: for<'s> Fn(&'s _, &'s _) = |_mbcx, _state| {};
+        do_mir_borrowck(&infcx, input_mir, def_id, Some(box callback))
     });
     debug!("mir_borrowck done");
 
     opt_closure_req
 }
 
-fn do_mir_borrowck<'a, 'gcx, 'tcx>(
+pub fn do_mir_borrowck<'a, 'gcx, 'tcx>(
     infcx: &InferCtxt<'a, 'gcx, 'tcx>,
     input_mir: &Mir<'gcx>,
     def_id: DefId,
+    callback: Option<Box<dyn for<'s, 'g> Fn(&'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, &'s mut Flows<'g, 'gcx, 'tcx>)>>
 ) -> Option<ClosureRegionRequirements<'gcx>> {
     let tcx = infcx.tcx;
     let attributes = tcx.get_attrs(def_id);
@@ -252,30 +255,34 @@ fn do_mir_borrowck<'a, 'gcx, 'tcx>(
 
     mbcx.analyze_results(&mut state); // entry point for DataflowResultsConsumer
 
+    if let Some(callback) = callback {
+        callback(&mut mbcx, &mut state);
+    }
+
     opt_closure_req
 }
 
 #[allow(dead_code)]
 pub struct MirBorrowckCtxt<'cx, 'gcx: 'tcx, 'tcx: 'cx> {
-    tcx: TyCtxt<'cx, 'gcx, 'tcx>,
-    mir: &'cx Mir<'tcx>,
-    mir_def_id: DefId,
-    move_data: &'cx MoveData<'tcx>,
-    param_env: ParamEnv<'gcx>,
-    movable_generator: bool,
+    pub tcx: TyCtxt<'cx, 'gcx, 'tcx>,
+    pub mir: &'cx Mir<'tcx>,
+    pub mir_def_id: DefId,
+    pub move_data: &'cx MoveData<'tcx>,
+    pub param_env: ParamEnv<'gcx>,
+    pub movable_generator: bool,
     /// This keeps track of whether local variables are free-ed when the function
     /// exits even without a `StorageDead`, which appears to be the case for
     /// constants.
     ///
     /// I'm not sure this is the right approach - @eddyb could you try and
     /// figure this out?
-    locals_are_invalidated_at_exit: bool,
+    pub locals_are_invalidated_at_exit: bool,
     /// This field keeps track of when borrow errors are reported in the access_place function
     /// so that there is no duplicate reporting. This field cannot also be used for the conflicting
     /// borrow errors that is handled by the `reservation_error_reported` field as the inclusion
     /// of the `Span` type (while required to mute some errors) stops the muting of the reservation
     /// errors.
-    access_place_error_reported: FxHashSet<(Place<'tcx>, Span)>,
+    pub access_place_error_reported: FxHashSet<(Place<'tcx>, Span)>,
     /// This field keeps track of when borrow conflict errors are reported
     /// for reservations, so that we don't report seemingly duplicate
     /// errors for corresponding activations
@@ -283,21 +290,21 @@ pub struct MirBorrowckCtxt<'cx, 'gcx: 'tcx, 'tcx: 'cx> {
     /// FIXME: Ideally this would be a set of BorrowIndex, not Places,
     /// but it is currently inconvenient to track down the BorrowIndex
     /// at the time we detect and report a reservation error.
-    reservation_error_reported: FxHashSet<Place<'tcx>>,
+    pub reservation_error_reported: FxHashSet<Place<'tcx>>,
     /// This field keeps track of errors reported in the checking of moved variables,
     /// so that we don't report report seemingly duplicate errors.
-    moved_error_reported: FxHashSet<Place<'tcx>>,
+    pub moved_error_reported: FxHashSet<Place<'tcx>>,
     /// Non-lexical region inference context, if NLL is enabled.  This
     /// contains the results from region inference and lets us e.g.
     /// find out which CFG points are contained in each borrow region.
-    nonlexical_regioncx: Rc<RegionInferenceContext<'tcx>>,
-    nonlexical_cause_info: Option<RegionCausalInfo>,
+    pub nonlexical_regioncx: Rc<RegionInferenceContext<'tcx>>,
+    pub nonlexical_cause_info: Option<RegionCausalInfo>,
 
     /// The set of borrows extracted from the MIR
-    borrow_set: Rc<BorrowSet<'tcx>>,
+    pub borrow_set: Rc<BorrowSet<'tcx>>,
 
     /// Dominators for MIR
-    dominators: Dominators<BasicBlock>,
+    pub dominators: Dominators<BasicBlock>,
 }
 
 // Check that:

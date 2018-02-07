@@ -46,7 +46,7 @@ impl<'tcx> IsPrefixOf<'tcx> for Place<'tcx> {
 }
 
 
-pub(super) struct Prefixes<'cx, 'gcx: 'tcx, 'tcx: 'cx> {
+pub struct Prefixes<'cx, 'gcx: 'tcx, 'tcx: 'cx> {
     mir: &'cx Mir<'tcx>,
     tcx: TyCtxt<'cx, 'gcx, 'tcx>,
     kind: PrefixSet,
@@ -55,7 +55,7 @@ pub(super) struct Prefixes<'cx, 'gcx: 'tcx, 'tcx: 'cx> {
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 #[allow(dead_code)]
-pub(super) enum PrefixSet {
+pub enum PrefixSet {
     /// Doesn't stop until it returns the base case (a Local or
     /// Static prefix).
     All,
@@ -69,7 +69,7 @@ impl<'cx, 'gcx, 'tcx> MirBorrowckCtxt<'cx, 'gcx, 'tcx> {
     /// Returns an iterator over the prefixes of `place`
     /// (inclusive) from longest to smallest, potentially
     /// terminating the iteration early based on `kind`.
-    pub(super) fn prefixes(
+    pub fn prefixes(
         &self,
         place: &'cx Place<'tcx>,
         kind: PrefixSet,
